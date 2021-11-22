@@ -1,3 +1,3 @@
 Dynamic Private Range Search Scheme
 
-Here is our github for our CSE 29-x research project
+Here is our github for our CSE 290x research project
