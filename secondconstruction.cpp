@@ -177,6 +177,13 @@ void fillOMAP(OMAP &testmap, vector<KVpair*> &data)
     }
 }
 
+void fillsrcMAP(OMAP &mapSRC, vector<KVpair*> &data)
+{
+    for (int i = 1; i < (mSize+1); i++){
+			mapSRC.insert(i, toString(data.at(i-1)->salary) + " " + data.at(i-1)->name);
+        }
+	}
+
 
 string getSRCnode(string start, string end)
 {
@@ -237,6 +244,8 @@ int main () {
 	//Initializes OMAP based on mSize
 	bytes<Key> key{0};
 	OMAP testmap(mSize, key);
+    bytes<Key> key1{0};
+    OMAP mapSRC(mSize, key1);
 	vector <KVpair*> data;
 	readFile(data);
 	mergeSort(data, 0 , data.size() - 1);
