@@ -243,25 +243,52 @@ int main () {
 	
 	fillOMAP(testmap, data);
     
+
 	
 	
-	cout << (data.at(0))->salary << " " << getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap) << endl;
+	/*cout << (data.at(0))->salary << " " << getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap) << endl;
 	cout << "(1,8): " << getSRCnode("1", "8") << endl;
 	cout << "(3,6): " << getSRCnode("3", "6") << endl;
 	cout << "(3,7): " << getSRCnode("3", "7") << endl;
 	cout << "(1,1): " << getSRCnode("1", "1") << endl;
+	*/
 	
 	
 	
-	/*cout << testmap.find((data.at(0))->salary) << endl;
-	cout << testmap.find((data.at(1))->salary) << endl;
-	cout << testmap.find((data.at(2))->salary) << endl;
-	cout << testmap.find((data.at(3))->salary) << endl;
-	cout << testmap.find((data.at(4))->salary) << endl;
-	cout << testmap.find((data.at(5))->salary) << endl;
-	cout << testmap.find((data.at(6))->salary) << endl;
-	cout << testmap.find((data.at(7))->salary) << endl;
-	cout << testmap.find((data.at(8))->salary) << endl;
-	cout << testmap.find((data.at(9))->salary) << endl;*/
+	
+	
+	
+	bool usehdd = false, cleaningMode = false;
+
+    Server server(usehdd, cleaningMode);
+    Client client(&server, cleaningMode, 100);
+	
+	cout << ceil(log2(data.size())) << endl;
+	for(int level = 0; level <= ceil(log2(data.size())); ++level)
+	{
+		for(int i = 1; (i + pow(2, level) - 1) <= pow(2, ceil(log2(data.size()))); i = i + ceil(pow(2,level-1)))
+		{
+			int end = (i + pow(2, level) - 1);
+			//cout << to_string(i) + "-" + to_string(end) << endl;
+			client.update(OP::INS, to_string(i) + "-" + to_string(end), pow(2, level), false);
+		}
+	}
+	
+	
+
+    /*client.update(OP::INS, "test", 5, false);
+    client.update(OP::INS, "test", 6, false);
+    client.update(OP::INS, "test", 7, false);
+    client.update(OP::DEL, "test", 6, false);*/
+    vector<int> res = client.search("1-2");
+	
+    
+	cout << "searching for (1,1): " << res.size() << " ||" << endl; 
+    for (auto item : res) {
+        cout << item << endl;
+    }
+	
+	
+	
 	return 0;
 }
