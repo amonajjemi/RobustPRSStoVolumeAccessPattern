@@ -1,9 +1,11 @@
 #include "mitra/Client.h"
+#include "build/mitra/OMAP.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <sstream>
 #include <string>
+#include <utility>
 using namespace std;
 
 struct KVpair 
@@ -151,39 +153,46 @@ void printKVpairVector(vector<KVpair*> &data)
 	}
 }
 
-void mitraTestCode()
-{
-	bool usehdd = false, cleaningMode = false;
+// alter mSize to size of Database
+const int mSize = 10;
 
-    Server server(usehdd, cleaningMode);
-    Client client(&server, cleaningMode, 100);
-
-    client.update(OP::INS, "test", 5, false);
-    client.update(OP::INS, "test", 6, false);
-    client.update(OP::INS, "test", 7, false);
-    client.update(OP::DEL, "test", 6, false);
-    vector<int> res = client.search("test");
-    
-    for (auto item : res) {
-        cout << item << endl;
-    }
-
-}
+//Initializes OMAP based on mSize
+bytes<Key> key{0};
+OMAP testmap(mSize, key);
+//Bid testbid = new Bid(string value)
 
 int main () {
-    
 	vector <KVpair*> data;
-	
-	
 	readFile(data);
 	mergeSort(data, 0 , data.size() - 1);
-	printKVpairVector(data);
 	
-	cout << endl << endl;
-	
-	mitraTestCode();
-	
-	cleanReadData(data);
-	
-	return 0;
+    int current;
+    string passin = ""; 
+    int control = (data.at(0))->salary;
+    int counter = 0;
+
+    for (int i = 0; i < (mSize); i++){
+        current = (data.at(i))->salary;
+        if(current != control){
+           passin = to_string(counter+1) + " " + to_string(i);
+           testmap.insert((data.at(i-1))->salary, passin);
+           control = current; 
+           counter = i;
+        } 
+	if(i == mSize-1){
+	   passin = to_string(counter+1) + " " + to_string(i+1);
+	   testmap.insert((data.at(i))->salary, passin);	
+	}
+    }
+cout << testmap.find((data.at(0))->salary) << endl;
+cout << testmap.find((data.at(1))->salary) << endl;
+cout << testmap.find((data.at(2))->salary) << endl;
+cout << testmap.find((data.at(3))->salary) << endl;
+cout << testmap.find((data.at(4))->salary) << endl;
+cout << testmap.find((data.at(5))->salary) << endl;
+cout << testmap.find((data.at(6))->salary) << endl;
+cout << testmap.find((data.at(7))->salary) << endl;
+cout << testmap.find((data.at(8))->salary) << endl;
+cout << testmap.find((data.at(9))->salary) << endl;
+return 0;
 }
