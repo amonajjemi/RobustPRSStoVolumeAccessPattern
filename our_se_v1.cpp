@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <math.h>
 using namespace std;
 
 struct KVpair 
@@ -14,7 +15,8 @@ struct KVpair
 	double salary;
 };
 
-
+// alter mSize to size of Database
+const int mSize = 10;
 
 //************************************************************
 //Adapted mergesort from this linke: https://www.programiz.com/dsa/merge-sort
@@ -153,20 +155,9 @@ void printKVpairVector(vector<KVpair*> &data)
 	}
 }
 
-// alter mSize to size of Database
-const int mSize = 10;
-
-//Initializes OMAP based on mSize
-bytes<Key> key{0};
-OMAP testmap(mSize, key);
-//Bid testbid = new Bid(string value)
-
-int main () {
-	vector <KVpair*> data;
-	readFile(data);
-	mergeSort(data, 0 , data.size() - 1);
-	
-    int current;
+void fillOMAP(OMAP &testmap, vector<KVpair*> &data)
+{
+	int current;
     string passin = ""; 
     int control = (data.at(0))->salary;
     int counter = 0;
@@ -174,25 +165,84 @@ int main () {
     for (int i = 0; i < (mSize); i++){
         current = (data.at(i))->salary;
         if(current != control){
-           passin = to_string(counter+1) + " " + to_string(i);
-           testmap.insert((data.at(i-1))->salary, passin);
-           control = current; 
-           counter = i;
+			passin = to_string(counter+1) + " " + to_string(i);
+			testmap.insert((data.at(i-1))->salary, passin);
+			control = current; 
+			counter = i;
         } 
 	if(i == mSize-1){
-	   passin = to_string(counter+1) + " " + to_string(i+1);
-	   testmap.insert((data.at(i))->salary, passin);	
+		passin = to_string(counter+1) + " " + to_string(i+1);
+		testmap.insert((data.at(i))->salary, passin);	
 	}
     }
-cout << testmap.find((data.at(0))->salary) << endl;
-cout << testmap.find((data.at(1))->salary) << endl;
-cout << testmap.find((data.at(2))->salary) << endl;
-cout << testmap.find((data.at(3))->salary) << endl;
-cout << testmap.find((data.at(4))->salary) << endl;
-cout << testmap.find((data.at(5))->salary) << endl;
-cout << testmap.find((data.at(6))->salary) << endl;
-cout << testmap.find((data.at(7))->salary) << endl;
-cout << testmap.find((data.at(8))->salary) << endl;
-cout << testmap.find((data.at(9))->salary) << endl;
-return 0;
+}
+
+
+string getSRCnode(string start, string end)
+{
+	int newStart = stoi(start);
+	int newEnd = stoi(start);
+	int i = 0;
+	
+	while(newStart > 0 && newEnd < 10)
+	{
+		//position on the level from left to right of the node we are looking at
+		int pos = newEnd / pow(2, i);
+		if(newEnd + pow(2, i) >= stoi(end))
+		{
+			newEnd = newEnd + pow(2, i);
+			break;
+		}
+		if(pos % 2 == 0)
+		{
+			newStart = newStart - pow(2, i);
+		}
+		else
+		{
+			newEnd = newEnd + pow(2, i);
+		}
+		++i;
+	}
+	
+	return (to_string(newStart) + "-" + to_string(newEnd));
+}
+
+string getRangeQuery(double a, double b)
+{
+	
+}
+
+//Bid testbid = new Bid(string value)
+
+int main () {
+	//Initializes OMAP based on mSize
+	bytes<Key> key{0};
+	OMAP testmap(mSize, key);
+	vector <KVpair*> data;
+	readFile(data);
+	mergeSort(data, 0 , data.size() - 1);
+	
+	fillOMAP(testmap, data);
+    
+	
+	
+	cout << "(6,8): " << getSRCnode("6", "8") << endl;
+	cout << "(1,8): " << getSRCnode("1", "8") << endl;
+	cout << "(3,6): " << getSRCnode("3", "6") << endl;
+	cout << "(3,7): " << getSRCnode("3", "7") << endl;
+	cout << "(2,3): " << getSRCnode("2", "3") << endl;
+	
+	
+	
+	/*cout << testmap.find((data.at(0))->salary) << endl;
+	cout << testmap.find((data.at(1))->salary) << endl;
+	cout << testmap.find((data.at(2))->salary) << endl;
+	cout << testmap.find((data.at(3))->salary) << endl;
+	cout << testmap.find((data.at(4))->salary) << endl;
+	cout << testmap.find((data.at(5))->salary) << endl;
+	cout << testmap.find((data.at(6))->salary) << endl;
+	cout << testmap.find((data.at(7))->salary) << endl;
+	cout << testmap.find((data.at(8))->salary) << endl;
+	cout << testmap.find((data.at(9))->salary) << endl;*/
+	return 0;
 }
