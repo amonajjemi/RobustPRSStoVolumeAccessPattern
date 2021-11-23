@@ -183,9 +183,11 @@ string getSRCnode(string start, string end)
 	int newStart = stoi(start);
 	int newEnd = stoi(start);
 	int i = 0;
-	
+	if(stoi(start) == stoi(end))
+		return (start + "-" + end);
 	while(newStart > 0 && newEnd < 10)
 	{
+		
 		//position on the level from left to right of the node we are looking at
 		int pos = newEnd / pow(2, i);
 		if(newEnd + pow(2, i) >= stoi(end))
@@ -207,9 +209,26 @@ string getSRCnode(string start, string end)
 	return (to_string(newStart) + "-" + to_string(newEnd));
 }
 
-string getRangeQuery(double a, double b)
+
+//https://www.codegrepper.com/code-examples/cpp/split+string+by+whitespace+c%2B%2B
+vector<string> string_split(const string& str) {
+	vector<string> result;
+	istringstream iss(str);
+	for (string s; iss >> s; )
+		result.push_back(s);
+	return result;
+}
+
+string getRangeQuery(double a, double b, OMAP &testmap)
 {
+	string first = testmap.find(a);
+	string second = testmap.find(b);
 	
+	
+	vector<string> firstPair = string_split(first);
+	vector<string> secondPair = string_split(second);
+	
+	return getSRCnode(firstPair.at(0), secondPair.at(1));
 }
 
 //Bid testbid = new Bid(string value)
@@ -226,11 +245,11 @@ int main () {
     
 	
 	
-	cout << "(6,8): " << getSRCnode("6", "8") << endl;
+	cout << (data.at(0))->salary << " " << getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap) << endl;
 	cout << "(1,8): " << getSRCnode("1", "8") << endl;
 	cout << "(3,6): " << getSRCnode("3", "6") << endl;
 	cout << "(3,7): " << getSRCnode("3", "7") << endl;
-	cout << "(2,3): " << getSRCnode("2", "3") << endl;
+	cout << "(1,1): " << getSRCnode("1", "1") << endl;
 	
 	
 	
