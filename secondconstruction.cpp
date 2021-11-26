@@ -155,6 +155,7 @@ void printKVpairVector(vector<KVpair*> &data)
 	}
 }
 
+//Fill OMAP with n elements after sorting them by their search attribute
 void fillOMAP(OMAP &testmap, vector<KVpair*> &data)
 {
 	int current;
@@ -177,14 +178,24 @@ void fillOMAP(OMAP &testmap, vector<KVpair*> &data)
     }
 }
 
-void fillsrcMAP(OMAP &mapSRC, vector<KVpair*> &data)
+void fillsrcMAP(OMAP &mapSRC, vector<KVpair*> data)
 {
-    for (int i = 1; i < (mSize+1); i++){
-			mapSRC.insert(i, toString(data.at(i-1)->salary) + " " + data.at(i-1)->name);
-        }
+    for (unsigned int i = 1; i <= pow(2, ceil(log2(data.size()))); i++){
+		if(i <= data.size())
+		{
+			mapSRC.insert(i, data.at(i-1)->name + " " + to_string(data.at(i-1)->salary));
+			cout << "leaf: " << i << " value: " << data.at(i-1)->name + " " + to_string(data.at(i-1)->salary) << endl;
+		}
+		else
+		{
+			mapSRC.insert(i, "dummy");
+			cout << "leaf: " << i << " value: dummy" << endl;
+		}
 	}
+}
 
-
+//Calculate which SRC nod to return in form:x-y where x is the start and
+//y is the end of the range
 string getSRCnode(string start, string end)
 {
 	int newStart = stoi(start);
@@ -213,7 +224,7 @@ string getSRCnode(string start, string end)
 		++i;
 	}
 	
-	return (to_string(newStart) + "-" + to_string(newEnd));
+	return (to_string(newStart) + " " + to_string(newEnd));
 }
 
 
@@ -226,7 +237,8 @@ vector<string> string_split(const string& str) {
 	return result;
 }
 
-string getRangeQuery(double a, double b, OMAP &testmap)
+//send the first construction a query
+vector<string> getRangeQuery(double a, double b, OMAP &testmap)
 {
 	string first = testmap.find(a);
 	string second = testmap.find(b);
@@ -235,68 +247,83 @@ string getRangeQuery(double a, double b, OMAP &testmap)
 	vector<string> firstPair = string_split(first);
 	vector<string> secondPair = string_split(second);
 	
-	return getSRCnode(firstPair.at(0), secondPair.at(1));
+	string srcNode = getSRCnode(firstPair.at(0), secondPair.at(1));
+	vector<string> endPoints = string_split(srcNode);
+	
+	return endPoints;
 }
 
-//Bid testbid = new Bid(string value)
+//Fills Pibas with the data indexed using the SRC tree
+void srcQueryConstruction(vector<KVpair*> &data, Client *client)
+{
 
-int main () {
-	//Initializes OMAP based on mSize
-	bytes<Key> key{0};
-	OMAP testmap(mSize, key);
-    bytes<Key> key1{0};
-    OMAP mapSRC(mSize, key1);
-	vector <KVpair*> data;
-	readFile(data);
-	mergeSort(data, 0 , data.size() - 1);
-	
-	fillOMAP(testmap, data);
-    
-
-	
-	
-	/*cout << (data.at(0))->salary << " " << getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap) << endl;
-	cout << "(1,8): " << getSRCnode("1", "8") << endl;
-	cout << "(3,6): " << getSRCnode("3", "6") << endl;
-	cout << "(3,7): " << getSRCnode("3", "7") << endl;
-	cout << "(1,1): " << getSRCnode("1", "1") << endl;
-	*/
-	
-	
-	
-	
-	
-	
-	bool usehdd = false, cleaningMode = false;
-
-    Server server(usehdd, cleaningMode);
-    Client client(&server, cleaningMode, 100);
-	
-	cout << ceil(log2(data.size())) << endl;
+	//cout << ceil(log2(data.size())) << endl;
 	for(int level = 0; level <= ceil(log2(data.size())); ++level)
 	{
 		for(int i = 1; (i + pow(2, level) - 1) <= pow(2, ceil(log2(data.size()))); i = i + ceil(pow(2,level-1)))
 		{
 			int end = (i + pow(2, level) - 1);
 			//cout << to_string(i) + "-" + to_string(end) << endl;
-			client.update(OP::INS, to_string(i) + "-" + to_string(end), pow(2, level), false);
+			client->update(OP::INS, to_string(i) + "-" + to_string(end), pow(2, level), false);
 		}
+	}
+	 
+}
+
+
+
+int main () {
+	
+	
+	
+	//data vector holds all KVpair records
+	vector <KVpair*> data;
+	readFile(data);
+	
+	//Initializes OMAP based on mSize
+	bytes<Key> key{0};
+	OMAP testmap(mSize, key);
+	OMAP srcMap((pow(2, ceil(log2(data.size())))), key);
+	
+	
+	//sort data to hold all the same records now in order from lowest salary to highest
+	mergeSort(data, 0 , data.size() - 1);
+	
+	//Fill an OMAP with the sorted data using the the salary as the key and the range
+	//of records with that salary as the value
+	fillOMAP(testmap, data);
+	fillsrcMAP(srcMap, data);
+	
+	//cout << (data.at(0))->salary << " " << getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap) << endl;
+	
+	
+	printKVpairVector(data);
+	cout << endl << endl;
+	
+	
+	
+	//read input from stdin
+	string inputQuery;
+	cout << "Enter your query:" << endl;
+	getline(cin, inputQuery);
+	//cout << inputQuery << endl;
+	vector<string> parsedQuery = string_split(inputQuery);
+	
+	
+	//vector<int> res = getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap, &client);
+	vector<string> res = getRangeQuery(stoi(parsedQuery.at(0)), stoi(parsedQuery.at(1)), testmap);
+	
+	for(int i = stoi(res.at(0)); i <= stoi(res.at(1)); ++i)
+	{
+		cout << srcMap.find(i) << endl;
 	}
 	
 	
-
-    /*client.update(OP::INS, "test", 5, false);
-    client.update(OP::INS, "test", 6, false);
-    client.update(OP::INS, "test", 7, false);
-    client.update(OP::DEL, "test", 6, false);*/
-    vector<int> res = client.search("1-2");
 	
-    
-	cout << "searching for (1,1): " << res.size() << " ||" << endl; 
+	cout << "You queried: " << inputQuery << " and here are your resules: " << endl;
     for (auto item : res) {
         cout << item << endl;
     }
-	
 	
 	
 	return 0;
