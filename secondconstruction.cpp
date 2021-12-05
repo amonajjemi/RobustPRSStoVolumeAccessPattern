@@ -184,12 +184,12 @@ void fillsrcMAP(OMAP &mapSRC, vector<KVpair*> data)
 		if(i <= data.size())
 		{
 			mapSRC.insert(i, data.at(i-1)->name + " " + to_string(data.at(i-1)->salary));
-			cout << "leaf: " << i << " value: " << data.at(i-1)->name + " " + to_string(data.at(i-1)->salary) << endl;
+			//cout << "leaf: " << i << " value: " << data.at(i-1)->name + " " + to_string(data.at(i-1)->salary) << endl;
 		}
 		else
 		{
 			mapSRC.insert(i, "dummy");
-			cout << "leaf: " << i << " value: dummy" << endl;
+			//cout << "leaf: " << i << " value: dummy" << endl;
 		}
 	}
 }
@@ -202,7 +202,7 @@ string getSRCnode(string start, string end)
 	int newEnd = stoi(start);
 	int i = 0;
 	if(stoi(start) == stoi(end))
-		return (start + "-" + end);
+		return (start + " " + end);
 	while(newStart > 0 && newEnd < 10)
 	{
 		
@@ -270,7 +270,20 @@ void srcQueryConstruction(vector<KVpair*> &data, Client *client)
 	 
 }
 
-
+vector<string> makeQuery(OMAP &testmap)
+{
+	//read input from stdin
+	string inputQuery;
+	cout << "Enter your query:" << endl;
+	getline(cin, inputQuery);
+	//cout << inputQuery << endl;
+	vector<string> parsedQuery = string_split(inputQuery);
+	
+	cout << "You queried: " << inputQuery << " and here are your results: " << endl;
+	//vector<int> res = getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap, &client);
+	vector<string> res = getRangeQuery(stoi(parsedQuery.at(0)), stoi(parsedQuery.at(1)), testmap);
+	return res;
+}
 
 int main () {
 	
@@ -301,29 +314,14 @@ int main () {
 	cout << endl << endl;
 	
 	
+	//ask for user to make a range query
+	vector<string> queryRange = makeQuery(testmap);
 	
-	//read input from stdin
-	string inputQuery;
-	cout << "Enter your query:" << endl;
-	getline(cin, inputQuery);
-	//cout << inputQuery << endl;
-	vector<string> parsedQuery = string_split(inputQuery);
-	
-	
-	//vector<int> res = getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap, &client);
-	vector<string> res = getRangeQuery(stoi(parsedQuery.at(0)), stoi(parsedQuery.at(1)), testmap);
-	
-	for(int i = stoi(res.at(0)); i <= stoi(res.at(1)); ++i)
+	for(int i = stoi(queryRange.at(0)); i <= stoi(queryRange.at(1)); ++i)
 	{
 		cout << srcMap.find(i) << endl;
 	}
 	
-	
-	
-	cout << "You queried: " << inputQuery << " and here are your resules: " << endl;
-    for (auto item : res) {
-        cout << item << endl;
-    }
 	
 	
 	return 0;
