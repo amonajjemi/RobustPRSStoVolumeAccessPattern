@@ -1,5 +1,5 @@
-#include "mitra/Client.h"
-#include "build/mitra/OMAP.h"
+#include "static/Amortized.h"
+#include "build/static/OMAP.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -178,8 +178,7 @@ void fillOMAP(OMAP &testmap, vector<KVpair*> &data)
     }
 }
 
-//Calculate which SRC nod to return in form:x-y where x is the start and
-//y is the end of the range
+
 string getSRCnode(string start, string end)
 {
 	int newStart = stoi(start);
@@ -221,31 +220,26 @@ vector<string> string_split(const string& str) {
 	return result;
 }
 
-//send the first construction a query
-vector<int> getRangeQuery(double a, double b, OMAP &testmap, Client* client)
+string getRangeQuery(double a, double b, OMAP &testmap)
 {
 	string first = testmap.find(a);
 	string second = testmap.find(b);
+	cout << "here" << endl;
+	cout << first << endl;
+	cout << second << endl;
 	
 	
-	vector<string> firstPair = string_split(first);
-	vector<string> secondPair = string_split(second);
+	//vector<string> firstPair = string_split(first);
+	//vector<string> secondPair = string_split(second);
 	
-	/*vector<int> res = client.search("1-2");
 	
-    for (auto item : res) {
-        cout << item << endl;
-    }*/
-	//cout << getSRCnode(firstPair.at(0), secondPair.at(1)) << endl;
-	
-	return client->search(getSRCnode(firstPair.at(0), secondPair.at(1)));
+	return getSRCnode(first, second);
 }
 
 //Fills Pibas with the data indexed using the SRC tree
-void srcQueryConstruction(vector<KVpair*> &data, Client *client)
+/*void srcQueryConstruction(vector<KVpair*> &data, Amortized *client)
 {
 
-	//cout << ceil(log2(data.size())) << endl;
 	for(int level = 0; level <= ceil(log2(data.size())); ++level)
 	{
 		for(int i = 1; (i + pow(2, level) - 1) <= pow(2, ceil(log2(data.size()))); i = i + ceil(pow(2,level-1)))
@@ -256,43 +250,10 @@ void srcQueryConstruction(vector<KVpair*> &data, Client *client)
 		}
 	}
 	 
-}
+}*/
 
-
-
-int main () {
-	
-	//Create mitra server client
-	bool usehdd = false, cleaningMode = false;
-	
-	Server server(usehdd, cleaningMode);
-    Client client(&server, cleaningMode, 100);
-	
-	//Initializes OMAP based on mSize
-	bytes<Key> key{0};
-	OMAP testmap(mSize, key);
-	
-	//data vector holds all KVpair records
-	vector <KVpair*> data;
-	readFile(data);
-	
-	//sort data to hold all the same records now in order from lowest salary to highest
-	mergeSort(data, 0 , data.size() - 1);
-	
-	//Fill an OMAP with the sorted data using the the salary as the key and the range
-	//of records with that salary as the value
-	fillOMAP(testmap, data);
-	
-	//cout << (data.at(0))->salary << " " << getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap) << endl;
-	
-	
-	printKVpairVector(data);
-	cout << endl << endl;
-	
-	//Initialize mitra database with the SRC tree
-	srcQueryConstruction(data, &client);
-	
-	
+string makeQuery(OMAP &testmap)
+{
 	//read input from stdin
 	string inputQuery;
 	cout << "Enter your query:" << endl;
@@ -300,14 +261,65 @@ int main () {
 	//cout << inputQuery << endl;
 	vector<string> parsedQuery = string_split(inputQuery);
 	
+	cout << "You queried: " << inputQuery << " and here are your results: " << endl;
+	string res = getRangeQuery(stoi(parsedQuery.at(0)), stoi(parsedQuery.at(1)), testmap);
+	return res;
+}
+
+int main () {
 	
-	//vector<int> res = getRangeQuery((data.at(0))->salary, (data.at(7))->salary, testmap, &client);
-	vector<int> res = getRangeQuery(stoi(parsedQuery.at(0)), stoi(parsedQuery.at(1)), testmap, &client);
+	//Initializes OMAP based on mSize
+	bytes<Key> key{0};
+	OMAP testmap(mSize, key);
 	
-	cout << "You queried: " << inputQuery << " and here are your resules: " << endl;
+	//read in then sort database
+	vector <KVpair*> data;
+	readFile(data);
+	mergeSort(data, 0 , data.size() - 1);
+	
+	//fill OMAP with sorted data using salary as the key and the range of records
+	//containing that salary as the value
+	fillOMAP(testmap, data);
+	
+	
+	//Amortized client(false, 50, 100);
+	//initialize PiBas with SRC indexes
+	//srcQueryConstruction(data, &client);
+	printKVpairVector(data);
+	
+	testmap.insert(54363, "1-1");
+	
+	string inputQuery;
+	cout << "Enter your query:" << endl;
+	getline(cin, inputQuery);
+	//cout << inputQuery << endl;
+	vector<string> parsedQuery = string_split(inputQuery);
+	string first = testmap.find(54363);
+	string second = testmap.find(stoi(parsedQuery.at(1)));
+	cout << "first: " << first << endl;
+	cout << second << endl;
+	
+	cout << "You queried: " << inputQuery << " and here are your results: " << endl;
+	
+	
+	
+	
+	
+	
+	
+	
+	//string output = makeQuery(testmap);
+	//cout << output << endl;
+	
+	
+	//test query of client
+    /*vector<int> res = client.search("1-2");
+	
+	cout << "searching for (1,2): " << res.size() << " ||" << endl; 
     for (auto item : res) {
         cout << item << endl;
-    }
+    }*/
+	
 	
 	
 	return 0;
